@@ -3,7 +3,7 @@
 set -e
 
 if [ -f "./vars" ]; then
- . ./vars
+  . ./vars
 else
   . ../vars
 fi
@@ -15,15 +15,28 @@ build=$(mktemp -d)
 export GOPATH=${build}
 export GO15VENDOREXPERIMENT=1
 
+srcdir=$PWD
+
 for beat in ${beats}; do
 	objdir=obj/${beat}-${v}
 	mkdir ${objdir}
 
-	echo "building ${beat} for ${goarch}"
-	go get -u ${repo}/${beat}
-	$(cd ${build}/src/${repo}/ && git checkout -q v${v})
+	echo "===> Building ${beat} for ${goarch}"
+
+	echo -n "=> Fetching..."
+	go get -d ${repo}/${beat}
+	echo "done"
+
+	echo -n "=> Switching to ${v}..."
+	(cd ${build}/src/${repo}/ && git checkout -q v${v})
+	echo "done"
 	
-	cp ${build}/bin/${beat} ${objdir}/${beat}-${goarch}
+	echo -n "=> Building..."
+	cd ${build} && go build ${repo}/${beat}
+	echo "done"
+
+	cd ${srcdir}
+	install -D ${build}/${beat} ${objdir}/${beat}-${goarch}
 	cp -r ${build}/src/${repo}/${beat}/etc/ ${objdir}
 	echo "built ${beat}-${goarch}"
 done
