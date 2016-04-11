@@ -1,0 +1,4 @@
+v=1.2.1
+repo=github.com/elastic/beats/
+goarch=$(arch -s)
+beats="filebeat"
